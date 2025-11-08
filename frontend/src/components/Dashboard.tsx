@@ -7,6 +7,7 @@ import { useTrips } from '../hooks/useTrips'
 import TripCard from './TripCard'
 import CountdownTimer from './CountdownTimer'
 import { createDemoTrips } from '../utils/demoData'
+import AnimatedBackground3D from './AnimatedBackground3D'
 
 export default function Dashboard() {
   const { trips, loading, deleteTrip, upcomingTrips, getPackingProgress, addTrip } = useTrips()
@@ -18,6 +19,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50">
+      <AnimatedBackground3D />
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
