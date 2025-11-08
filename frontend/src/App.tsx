@@ -3,9 +3,17 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Dashboard from './components/Dashboard'
 import ChatPage from './components/ChatPage'
 import ThingsToDoPage from './components/ThingsToDoPage'
+import SchedulePage from './components/SchedulePage'
+import BudgetPage from './components/BudgetPage'
+import DocumentsPage from './components/DocumentsPage'
 import PackingPage from './components/PackingPage'
+import SettingsPage from './components/SettingsPage'
+import AccountPage from './components/AccountPage'
 import TopNav from './components/TopNav'
 import { Toaster } from './components/ui/toaster'
+import { ThemeProvider } from './contexts/ThemeContext'
+import { SettingsProvider } from './contexts/SettingsContext'
+import { AuthProvider } from './contexts/AuthContext'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -53,6 +61,45 @@ function AnimatedRoutes() {
           }
         />
         <Route
+          path="/trips/:tripId/schedule"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SchedulePage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/trips/:tripId/budget"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <BudgetPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/trips/:tripId/documents"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <DocumentsPage />
+            </motion.div>
+          }
+        />
+        <Route
           path="/trips/:tripId/packing"
           element={
             <motion.div
@@ -65,6 +112,32 @@ function AnimatedRoutes() {
             </motion.div>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SettingsPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AccountPage />
+            </motion.div>
+          }
+        />
       </Routes>
     </AnimatePresence>
   )
@@ -72,13 +145,19 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-white">
-        <TopNav />
-        <AnimatedRoutes />
-        <Toaster />
-      </div>
-    </Router>
+    <ThemeProvider>
+      <SettingsProvider>
+        <AuthProvider>
+          <Router>
+            <div className="min-h-screen bg-white dark:bg-gray-900">
+              <TopNav />
+              <AnimatedRoutes />
+              <Toaster />
+            </div>
+          </Router>
+        </AuthProvider>
+      </SettingsProvider>
+    </ThemeProvider>
   )
 }
 

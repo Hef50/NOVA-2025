@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Loader2 } from 'lucide-react'
 import { Input } from './ui/input'
@@ -20,57 +20,51 @@ export default function LocationSearch({ onSelectLocation }: { onSelectLocation:
   const [searchQuery, setSearchQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [recommendations, setRecommendations] = useState<Location[]>([])
+  const [allDestinations, setAllDestinations] = useState<Location[]>([])
+
+  useEffect(() => {
+    // Load destinations from JSON file
+    fetch('/destinations.json')
+      .then(res => res.json())
+      .then(data => {
+        const locations: Location[] = data.destinations.map((dest: any) => ({
+          id: dest.id,
+          name: dest.name,
+          country: dest.country,
+          description: dest.description,
+          imageUrl: dest.imageUrl,
+          price: dest.price,
+          highlights: dest.highlights,
+          bestDeal: false
+        }))
+        setAllDestinations(locations)
+      })
+      .catch(err => console.error('Failed to load destinations:', err))
+  }, [])
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
 
     setSearching(true)
     
-    // Simulate API call - Replace with actual AI/API call later
+    // Simulate API call - Filter destinations based on search
     setTimeout(() => {
-      const mockRecommendations: Location[] = [
-        {
-          id: '1',
-          name: 'Kyoto',
-          country: 'Japan',
-          description: 'Ancient temples, traditional gardens, and stunning cherry blossoms await in this cultural heart of Japan.',
-          imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',
-          bestDeal: true,
-          price: '$1,200 - $1,800',
-          highlights: ['Historic Temples', 'Cherry Blossoms', 'Traditional Cuisine']
-        },
-        {
-          id: '2',
-          name: 'Barcelona',
-          country: 'Spain',
-          description: 'Vibrant architecture, beautiful beaches, and world-class cuisine in the heart of Catalonia.',
-          imageUrl: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80',
-          price: '$1,000 - $1,500',
-          highlights: ['Gaudí Architecture', 'Mediterranean Beaches', 'Tapas Culture']
-        },
-        {
-          id: '3',
-          name: 'Santorini',
-          country: 'Greece',
-          description: 'Iconic white-washed buildings, stunning sunsets, and crystal-clear Aegean waters.',
-          imageUrl: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80',
-          price: '$1,500 - $2,200',
-          highlights: ['Sunset Views', 'White Architecture', 'Wine Tasting']
-        },
-        {
-          id: '4',
-          name: 'Dubai',
-          country: 'UAE',
-          description: 'Futuristic skyline, luxury shopping, and desert adventures in this modern metropolis.',
-          imageUrl: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
-          price: '$1,800 - $2,500',
-          highlights: ['Burj Khalifa', 'Desert Safari', 'Luxury Shopping']
-        }
-      ]
+      const query = searchQuery.toLowerCase()
+      const filtered = allDestinations.filter(dest => 
+        dest.name.toLowerCase().includes(query) ||
+        dest.country.toLowerCase().includes(query) ||
+        dest.description.toLowerCase().includes(query)
+      )
       
-      setRecommendations(mockRecommendations)
+      // Take top 4 results
+      const results = filtered.slice(0, 4).map((dest, idx) => ({
+        ...dest,
+        bestDeal: idx === 0 // Mark first result as best deal
+      }))
+      
+      setRecommendations(results.length > 0 ? results : allDestinations.slice(0, 4))
       setSearching(false)
-    }, 1500)
+    }, 1000)
   }
 
   return (

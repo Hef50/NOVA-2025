@@ -96,13 +96,36 @@ export default function ThingsToDoPage() {
   const trip = trips.find(t => t.id === tripId)
 
   useEffect(() => {
-    // Simulate loading attractions
-    setTimeout(() => {
-      setAttractions(mockAttractions)
-      setFilteredAttractions(mockAttractions)
-      setLoading(false)
-    }, 1000)
-  }, [])
+    // Load attractions from destinations.json based on trip destination
+    if (!trip) return
+
+    setLoading(true)
+    fetch('/destinations.json')
+      .then(res => res.json())
+      .then(data => {
+        // Find matching destination
+        const destination = data.destinations.find((dest: any) => 
+          trip.destination.includes(dest.name) || trip.destination.includes(dest.country)
+        )
+        
+        if (destination && destination.attractions) {
+          setAttractions(destination.attractions)
+          setFilteredAttractions(destination.attractions)
+        } else {
+          // Fallback to mock data if no match found
+          setAttractions(mockAttractions)
+          setFilteredAttractions(mockAttractions)
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to load attractions:', err)
+        // Fallback to mock data
+        setAttractions(mockAttractions)
+        setFilteredAttractions(mockAttractions)
+        setLoading(false)
+      })
+  }, [trip])
 
   useEffect(() => {
     // Apply filters
@@ -131,7 +154,7 @@ export default function ThingsToDoPage() {
 
     const selectedAttractions = attractions.filter(a => a.selected)
     updateTrip(trip.id, { activities: selectedAttractions })
-    navigate(`/trips/${trip.id}/packing`)
+    navigate(`/trips/${trip.id}/schedule`)
   }
 
   const selectedCount = attractions.filter(a => a.selected).length
@@ -223,7 +246,7 @@ export default function ThingsToDoPage() {
                   size="lg"
                   className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white font-semibold px-8 py-6 text-lg shadow-2xl"
                 >
-                  {selectedCount > 0 ? `Continue with ${selectedCount} selected` : 'Skip to Packing'}
+                  {selectedCount > 0 ? `Continue with ${selectedCount} selected` : 'Skip to Schedule'}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </motion.div>

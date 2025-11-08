@@ -116,20 +116,55 @@ export default function TripCard({ trip, packingProgress, onDelete }: TripCardPr
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Link to={`/trips/${trip.id}`} className="flex-1">
-                <Button
-                  variant="outline"
-                  className="w-full border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-                >
-                  View Details
-                </Button>
-              </Link>
-              <Link to={`/trips/${trip.id}/packing`} className="flex-1">
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white">
-                  Start Packing
-                </Button>
-              </Link>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Link to={`/trips/${trip.id}/schedule`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                  >
+                    Schedule
+                  </Button>
+                </Link>
+                <Link to={`/trips/${trip.id}/budget`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                  >
+                    Budget
+                  </Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Link to={`/trips/${trip.id}/things-to-do`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                  >
+                    Activities
+                  </Button>
+                </Link>
+                <Link to={`/trips/${trip.id}/documents`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                  >
+                    Documents
+                  </Button>
+                </Link>
+                <Link to={`/trips/${trip.id}/packing`}>
+                  <Button 
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
+                  >
+                    Packing
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

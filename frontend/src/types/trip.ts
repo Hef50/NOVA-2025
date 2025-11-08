@@ -1,3 +1,9 @@
+export interface DaySchedule {
+  day: number
+  date: string
+  activities: Activity[]
+}
+
 export interface Trip {
   id: string
   destination: string
@@ -7,6 +13,7 @@ export interface Trip {
   description?: string
   activities?: Activity[]
   packingList?: PackingItem[]
+  schedule?: DaySchedule[]
   createdAt: string
 }
 

@@ -1,2 +1,2 @@
-export type { Trip, Activity, PackingItem } from './trip'
+export type { Trip, Activity, PackingItem, DaySchedule } from './trip'
 
