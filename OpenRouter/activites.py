@@ -3,7 +3,6 @@ import json
 
 
 #openrouter_api_key_file = open("OPENROUTER_API_KEY.txt", 'r')
-API_KEY  = "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"
 #openrouter_api_key_file.close()
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
