@@ -78,7 +78,7 @@ const ChatPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pt-16">
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -91,7 +91,7 @@ const ChatPage: React.FC = () => {
               <span className="bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
                 Plan Your Dream Trip to{' '}
               </span>
-              <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent inline-block min-w-[200px] text-left">
+              <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent inline-block min-w-[200px] text-left dark:from-orange-400 dark:to-pink-400">
                 {typewriterText}
                 <span className="animate-pulse">|</span>
               </span>
@@ -101,36 +101,52 @@ const ChatPage: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* Location Search Component */}
-          <LocationSearch onSelectLocation={handleSelectLocation} />
+          {/* Date Range Picker - Show FIRST */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <DateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+            />
+          </motion.div>
 
-          {/* Date Range Picker - Show after location is selected */}
-          {selectedLocation && (
+          {/* Location Search Component - Show only after dates are set */}
+          {startDate && endDate ? (
+            <LocationSearch 
+              onSelectLocation={handleSelectLocation}
+              startDate={startDate}
+              endDate={endDate}
+            />
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Please select your travel dates to continue
+              </p>
+            </motion.div>
+          )}
+
+          {/* Continue Button - Show after location is selected */}
+          {selectedLocation && startDate && endDate && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-8"
+              className="mt-8 text-center"
             >
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
-              />
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-6 text-center"
+              <button
+                onClick={handleCreateTrip}
+                className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white font-semibold px-12 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all"
               >
-                <button
-                  onClick={handleCreateTrip}
-                  disabled={!startDate || !endDate}
-                  className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white font-semibold px-12 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Continue to Activities
-                </button>
-              </motion.div>
+                Continue to Activities
+              </button>
             </motion.div>
           )}
         </div>

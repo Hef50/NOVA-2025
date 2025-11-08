@@ -7,6 +7,7 @@ import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import BudgetChart from './BudgetChart'
+import TripSubNav from './TripSubNav'
 
 interface BudgetItem {
   id: string
@@ -92,6 +93,7 @@ export default function BudgetPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pt-16">
+      <TripSubNav />
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}

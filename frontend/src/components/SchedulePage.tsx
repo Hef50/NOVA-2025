@@ -5,6 +5,8 @@ import { Calendar, ArrowRight, Save } from 'lucide-react'
 import { useTrips } from '../hooks/useTrips'
 import { Button } from './ui/button'
 import DaySchedule from './DaySchedule'
+import TripSubNav from './TripSubNav'
+import WeatherForecast from './WeatherForecast'
 import type { Activity, DaySchedule as DayScheduleType } from '../types/trip'
 
 export default function SchedulePage() {
@@ -136,6 +138,7 @@ export default function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pt-16">
+      <TripSubNav />
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -181,11 +184,25 @@ export default function SchedulePage() {
             </div>
           </motion.div>
 
+          {/* Weather Forecast */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8"
+          >
+            <WeatherForecast
+              destination={trip.destination}
+              startDate={trip.startDate}
+              endDate={trip.endDate}
+            />
+          </motion.div>
+
           {/* Schedule Grid */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
             className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
           >
             {schedule.map((daySchedule, index) => (

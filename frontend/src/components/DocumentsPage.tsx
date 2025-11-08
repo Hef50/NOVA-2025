@@ -1,12 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FileText, Plus, Trash2, Calendar, AlertCircle } from 'lucide-react'
+import { FileText, Plus, Trash2, Calendar, AlertCircle, Globe, ExternalLink, Loader2, CheckCircle } from 'lucide-react'
 import { useTrips } from '../hooks/useTrips'
 import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import ChecklistWidget from './ChecklistWidget'
+import TripSubNav from './TripSubNav'
+
+interface VisaInfo {
+  required: boolean
+  type: string
+  processingTime: string
+  cost: string
+  requirements: string[]
+  embassyLink: string
+  notes: string
+}
 
 interface Document {
   id: string
@@ -33,6 +44,8 @@ export default function DocumentsPage() {
   const { trips } = useTrips()
   const [documents, setDocuments] = useState<Document[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
+  const [visaInfo, setVisaInfo] = useState<VisaInfo | null>(null)
+  const [loadingVisa, setLoadingVisa] = useState(false)
   const [newDoc, setNewDoc] = useState({
     type: 'Passport',
     name: '',
@@ -42,6 +55,55 @@ export default function DocumentsPage() {
   })
 
   const trip = trips.find(t => t.id === tripId)
+
+  // Fetch visa requirements when component mounts
+  useEffect(() => {
+    if (!trip) return
+    
+    const fetchVisaInfo = async () => {
+      setLoadingVisa(true)
+      try {
+        // Extract country from destination (e.g., "Paris, France" -> "France")
+        const country = trip.destination.split(',').pop()?.trim() || trip.destination
+        
+        const response = await fetch('http://localhost:8000/get_visa_requirements', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ destination: country })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setVisaInfo(data.visa_info)
+        }
+      } catch (error) {
+        console.error('Error fetching visa info:', error)
+        // Set default info if API fails
+        setVisaInfo({
+          required: true,
+          type: 'Tourist Visa',
+          processingTime: '2-4 weeks',
+          cost: 'Varies by nationality',
+          requirements: [
+            'Valid passport (6 months validity)',
+            'Completed visa application form',
+            'Recent passport-sized photographs',
+            'Proof of accommodation',
+            'Proof of sufficient funds',
+            'Return flight tickets'
+          ],
+          embassyLink: `https://www.google.com/search?q=${encodeURIComponent(trip.destination + ' embassy visa requirements')}`,
+          notes: 'Please verify requirements with your local embassy as they may vary by nationality.'
+        })
+      } finally {
+        setLoadingVisa(false)
+      }
+    }
+
+    fetchVisaInfo()
+  }, [trip])
 
   const handleAddDocument = () => {
     if (!newDoc.name) return
@@ -83,6 +145,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pt-16">
+      <TripSubNav />
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -103,6 +166,99 @@ export default function DocumentsPage() {
             <p className="text-gray-600 dark:text-gray-400">
               Keep track of all your important travel documents
             </p>
+          </motion.div>
+
+          {/* Visa Requirements Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8"
+          >
+            <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <Globe className="w-8 h-8 text-purple-600" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Visa Requirements for {trip.destination.split(',').pop()?.trim()}
+                </h2>
+              </div>
+
+              {loadingVisa ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                  <span className="ml-3 text-gray-600 dark:text-gray-400">Loading visa information...</span>
+                </div>
+              ) : visaInfo ? (
+                <div className="space-y-6">
+                  {/* Visa Status */}
+                  <div className={`p-4 rounded-lg ${visaInfo.required ? 'bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-800' : 'bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-800'}`}>
+                    <div className="flex items-center gap-2">
+                      {visaInfo.required ? (
+                        <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                      ) : (
+                        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      )}
+                      <span className={`font-semibold ${visaInfo.required ? 'text-yellow-800 dark:text-yellow-300' : 'text-green-800 dark:text-green-300'}`}>
+                        {visaInfo.required ? 'Visa Required' : 'No Visa Required'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {visaInfo.required && (
+                    <>
+                      {/* Visa Details Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Visa Type</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{visaInfo.type}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Processing Time</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{visaInfo.processingTime}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Estimated Cost</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{visaInfo.cost}</p>
+                        </div>
+                      </div>
+
+                      {/* Requirements List */}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Required Documents:</h3>
+                        <ul className="space-y-2">
+                          {visaInfo.requirements.map((req, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                              <span className="text-gray-700 dark:text-gray-300">{req}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Notes */}
+                      {visaInfo.notes && (
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded">
+                          <p className="text-sm text-gray-700 dark:text-gray-300">{visaInfo.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Embassy Link */}
+                      <Button
+                        onClick={() => window.open(visaInfo.embassyLink, '_blank')}
+                        className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Visit Embassy Website for More Information
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  Unable to load visa information. Please check with your local embassy.
+                </p>
+              )}
+            </Card>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

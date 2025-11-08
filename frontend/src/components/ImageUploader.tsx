@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, Camera, Loader2, X } from 'lucide-react'
+import { Upload, Camera, Loader2, X, Smartphone, QrCode } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
+import QRCodeModal from './QRCodeModal'
 
 interface ImageUploaderProps {
   onImageUpload: (imageData: string) => void
@@ -10,10 +11,17 @@ interface ImageUploaderProps {
   scannedImage: string | null
 }
 
+// Generate unique session ID
+const generateSessionId = () => {
+  return `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+}
+
 export default function ImageUploader({ onImageUpload, analyzing, scannedImage }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [dragActive, setDragActive] = useState(false)
   const [preview, setPreview] = useState<string | null>(scannedImage)
+  const [showQRModal, setShowQRModal] = useState(false)
+  const [sessionId] = useState(generateSessionId())
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -69,9 +77,16 @@ export default function ImageUploader({ onImageUpload, analyzing, scannedImage }
     }
   }
 
+  const handleQRImageReceived = (imageData: string) => {
+    setPreview(imageData)
+    setShowQRModal(false)
+    // Automatically analyze the image
+    onImageUpload(imageData)
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
-      <Card className="p-8 bg-white/80 backdrop-blur-sm">
+      <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
         {/* Instructions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -117,13 +132,23 @@ export default function ImageUploader({ onImageUpload, analyzing, scannedImage }
               onChange={handleChange}
               className="hidden"
             />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Choose Image
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Choose Image
+              </Button>
+              <Button
+                onClick={() => setShowQRModal(true)}
+                variant="outline"
+                className="border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                Take Picture with Phone
+              </Button>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -182,6 +207,14 @@ export default function ImageUploader({ onImageUpload, analyzing, scannedImage }
           </motion.div>
         )}
       </Card>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        sessionId={sessionId}
+        onImageReceived={handleQRImageReceived}
+      />
     </div>
   )
 }

@@ -7,7 +7,7 @@ class VisionService:
         self.api_key = os.getenv("OPENROUTER_API_KEY")
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
         
-    def analyze_suitcase_image(self, image_base64: str, packing_list: List[str]) -> Dict[str, List[str]]:
+    def analyze_suitcase_image(self, image_base64: str, packing_list: List[str]) -> Dict[str, any]:
         """
         Analyze a suitcase image and identify packed items
         
@@ -16,24 +16,33 @@ class VisionService:
             packing_list: List of items to check for
             
         Returns:
-            Dictionary with 'packed' and 'missing' lists
+            Dictionary with 'packed', 'missing', and 'confidence' lists
         """
         
         # Create prompt for vision model
-        items_text = ", ".join(packing_list)
-        prompt = f"""You are analyzing a suitcase image to identify packed items.
+        items_text = "\n".join([f"- {item}" for item in packing_list])
+        prompt = f"""You are an expert packing assistant analyzing a suitcase/luggage image to identify packed items.
 
-Here is the packing list to check against:
+PACKING LIST TO CHECK:
 {items_text}
 
-Please analyze the image and identify which items from the list are visible in the suitcase.
-Return your response in this exact JSON format:
+INSTRUCTIONS:
+1. Carefully examine the image for each item on the list
+2. Look for items that match the description (e.g., "T-Shirts (5)" means look for multiple t-shirts)
+3. Consider similar items (e.g., sneakers for "Comfortable Shoes")
+4. Be thorough but realistic - only mark items as packed if you can see them
+
+Return your response in this EXACT JSON format:
 {{
-    "packed": ["item1", "item2", ...],
-    "missing": ["item3", "item4", ...]
+    "packed": [
+        {{"item": "item name", "confidence": 0.95}}
+    ],
+    "missing": ["item1", "item2"]
 }}
 
-Only include items that are clearly visible in the image. Be conservative - if you're not sure an item is there, mark it as missing."""
+The confidence score should be 0.0 to 1.0 based on how certain you are the item is visible.
+Only include items with confidence > 0.6 in the packed list.
+Be conservative - if unsure, mark as missing."""
 
         try:
             headers = {
@@ -86,15 +95,33 @@ Only include items that are clearly visible in the image. Be conservative - if y
                 json_str = content[json_start:json_end]
                 analysis = json.loads(json_str)
                 
+                # Extract packed items with confidence
+                packed_items = analysis.get("packed", [])
+                packed_names = []
+                confidence_scores = {}
+                
+                for item in packed_items:
+                    if isinstance(item, dict):
+                        item_name = item.get("item", "")
+                        confidence = item.get("confidence", 0.8)
+                        packed_names.append(item_name)
+                        confidence_scores[item_name] = confidence
+                    else:
+                        # Fallback for simple string format
+                        packed_names.append(str(item))
+                        confidence_scores[str(item)] = 0.8
+                
                 return {
-                    "packed": analysis.get("packed", []),
-                    "missing": analysis.get("missing", packing_list)
+                    "packed": packed_names,
+                    "missing": analysis.get("missing", packing_list),
+                    "confidence": confidence_scores
                 }
             else:
                 # Fallback if JSON parsing fails
                 return {
                     "packed": [],
-                    "missing": packing_list
+                    "missing": packing_list,
+                    "confidence": {}
                 }
                 
         except Exception as e:
@@ -102,6 +129,7 @@ Only include items that are clearly visible in the image. Be conservative - if y
             # Return empty packed list on error
             return {
                 "packed": [],
-                "missing": packing_list
+                "missing": packing_list,
+                "confidence": {}
             }
 

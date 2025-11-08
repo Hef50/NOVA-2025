@@ -9,6 +9,7 @@ import ImageUploader from './ImageUploader'
 import PackingResults from './PackingResults'
 import { Button } from './ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
+import TripSubNav from './TripSubNav'
 
 const generatePackingList = (destination: string): PackingItem[] => {
   return [
@@ -47,6 +48,7 @@ export default function PackingPage() {
   const [analysisResults, setAnalysisResults] = useState<{
     packed: string[]
     missing: string[]
+    confidence?: Record<string, number>
   } | null>(null)
 
   const trip = trips.find(t => t.id === tripId)
@@ -107,8 +109,9 @@ export default function PackingPage() {
       
       const packed = result.packed || []
       const missing = result.missing || packingList.map(item => item.name)
+      const confidence = result.confidence || {}
 
-      setAnalysisResults({ packed, missing })
+      setAnalysisResults({ packed, missing, confidence })
       
       // Update packing list
       const updatedList = packingList.map(item => ({
@@ -173,7 +176,8 @@ export default function PackingPage() {
   const progress = totalCount > 0 ? Math.round((packedCount / totalCount) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pt-16">
+      <TripSubNav />
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -257,6 +261,7 @@ export default function PackingPage() {
                 <PackingResults
                   packed={analysisResults.packed}
                   missing={analysisResults.missing}
+                  confidence={analysisResults.confidence}
                   onReset={() => {
                     setAnalysisResults(null)
                     setScannedImage(null)
