@@ -7,6 +7,7 @@ import type { Activity } from '../types/trip'
 import AttractionCard from './AttractionCard'
 import FilterBar from './FilterBar'
 import { Button } from './ui/button'
+import TripSubNav from './TripSubNav'
 
 const mockAttractions: Activity[] = [
   {
@@ -96,30 +97,48 @@ export default function ThingsToDoPage() {
   const trip = trips.find(t => t.id === tripId)
 
   useEffect(() => {
-    // Load attractions from destinations.json based on trip destination
+    // Generate AI-powered activities for the destination
     if (!trip) return
 
     setLoading(true)
+    
+    // Try to load from destinations.json first
     fetch('/destinations.json')
       .then(res => res.json())
       .then(data => {
-        // Find matching destination
         const destination = data.destinations.find((dest: any) => 
           trip.destination.includes(dest.name) || trip.destination.includes(dest.country)
         )
         
-        if (destination && destination.attractions) {
+        if (destination && destination.attractions && destination.attractions.length >= 10) {
+          // Use existing attractions if we have enough
           setAttractions(destination.attractions)
           setFilteredAttractions(destination.attractions)
+          setLoading(false)
         } else {
-          // Fallback to mock data if no match found
-          setAttractions(mockAttractions)
-          setFilteredAttractions(mockAttractions)
+          // Generate AI activities
+          return fetch('http://localhost:8000/generate_activities', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              destination: trip.destination,
+              categories: ['sightseeing', 'food', 'adventure', 'cultural', 'entertainment'],
+              price_levels: ['free', 'budget', 'moderate', 'luxury']
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            const activities = data.activities || []
+            setAttractions(activities)
+            setFilteredAttractions(activities)
+            setLoading(false)
+          })
         }
-        setLoading(false)
       })
       .catch(err => {
-        console.error('Failed to load attractions:', err)
+        console.error('Failed to load/generate activities:', err)
         // Fallback to mock data
         setAttractions(mockAttractions)
         setFilteredAttractions(mockAttractions)
@@ -168,7 +187,8 @@ export default function ThingsToDoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-orange-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 pt-16">
+      <TripSubNav />
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}

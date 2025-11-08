@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { useTrips } from '../hooks/useTrips'
 import TripCard from './TripCard'
+import CountdownTimer from './CountdownTimer'
 import { createDemoTrips } from '../utils/demoData'
 
 export default function Dashboard() {
@@ -146,12 +147,27 @@ export default function Dashboard() {
             </motion.div>
           )}
 
+          {/* Countdown Timer for Next Trip */}
+          {upcomingTrips.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mb-8"
+            >
+              <CountdownTimer
+                targetDate={upcomingTrips[0].startDate}
+                label={`Countdown to ${upcomingTrips[0].destination}`}
+              />
+            </motion.div>
+          )}
+
           {/* Trip Cards Grid */}
           {trips.length > 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.5 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {trips.map((trip, index) => (

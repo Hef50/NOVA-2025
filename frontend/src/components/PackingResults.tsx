@@ -3,10 +3,12 @@ import { Check, X, ShoppingBag, RotateCcw, PartyPopper } from 'lucide-react'
 import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
+import { Progress } from './ui/progress'
 
 interface PackingResultsProps {
   packed: string[]
   missing: string[]
+  confidence?: Record<string, number>
   onReset: () => void
 }
 
@@ -15,7 +17,7 @@ const getBuyLink = (itemName: string): string => {
   return `https://www.amazon.com/s?k=${searchQuery}`
 }
 
-export default function PackingResults({ packed, missing, onReset }: PackingResultsProps) {
+export default function PackingResults({ packed, missing, confidence = {}, onReset }: PackingResultsProps) {
   const allPacked = missing.length === 0
 
   return (
@@ -61,18 +63,36 @@ export default function PackingResults({ packed, missing, onReset }: PackingResu
             </div>
 
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {packed.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.05 }}
-                  className="flex items-center p-3 bg-white rounded-lg"
-                >
-                  <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span className="text-gray-900 font-medium">{item}</span>
-                </motion.div>
-              ))}
+              {packed.map((item, index) => {
+                const itemConfidence = confidence[item] || 0.8
+                const confidencePercent = Math.round(itemConfidence * 100)
+                
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + index * 0.05 }}
+                    className="p-3 bg-white rounded-lg"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center flex-1">
+                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                        <span className="text-gray-900 font-medium">{item}</span>
+                      </div>
+                      <Badge 
+                        variant={confidencePercent >= 80 ? "default" : "secondary"}
+                        className="ml-2"
+                      >
+                        {confidencePercent}% confident
+                      </Badge>
+                    </div>
+                    <div className="ml-8">
+                      <Progress value={confidencePercent} className="h-1" />
+                    </div>
+                  </motion.div>
+                )
+              })}
             </div>
           </Card>
         </motion.div>

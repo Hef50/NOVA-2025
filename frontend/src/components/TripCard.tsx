@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
-import { Calendar, MapPin, Package, Trash2 } from 'lucide-react'
+import { Calendar, MapPin, Package, Trash2, Share2, Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import type { Trip } from '../types/trip'
 import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
+import { useToast } from '../hooks/use-toast'
 
 interface TripCardProps {
   trip: Trip
@@ -14,6 +16,9 @@ interface TripCardProps {
 }
 
 export default function TripCard({ trip, packingProgress, onDelete }: TripCardProps) {
+  const { toast } = useToast()
+  const [copied, setCopied] = useState(false)
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -25,6 +30,23 @@ export default function TripCard({ trip, packingProgress, onDelete }: TripCardPr
     const diffTime = start.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
+  }
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    const shareUrl = `${window.location.origin}/trips/${trip.id}/things-to-do`
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      toast({
+        title: 'Link Copied!',
+        description: 'Share this link with friends to collaborate on your trip.',
+      })
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
   }
 
   const daysUntil = getDaysUntil()
@@ -67,18 +89,32 @@ export default function TripCard({ trip, packingProgress, onDelete }: TripCardPr
               </motion.div>
             )}
 
-            {/* Delete Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.preventDefault()
-                onDelete(trip.id)
-              }}
-              className="absolute top-3 left-3 p-2 bg-red-500/90 backdrop-blur-sm rounded-full hover:bg-red-600 transition-colors"
-            >
-              <Trash2 className="w-4 h-4 text-white" />
-            </motion.button>
+            {/* Action Buttons */}
+            <div className="absolute top-3 left-3 flex gap-2">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleShare}
+                className="p-2 bg-blue-500/90 backdrop-blur-sm rounded-full hover:bg-blue-600 transition-colors"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 text-white" />
+                ) : (
+                  <Share2 className="w-4 h-4 text-white" />
+                )}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  onDelete(trip.id)
+                }}
+                className="p-2 bg-red-500/90 backdrop-blur-sm rounded-full hover:bg-red-600 transition-colors"
+              >
+                <Trash2 className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
           </div>
 
           {/* Content Section */}
