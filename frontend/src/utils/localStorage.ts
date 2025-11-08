@@ -1,6 +1,6 @@
 import type { Trip } from '../types/trip'
 
-const TRIPS_KEY = 'novaNomad_trips'
+const TRIPS_KEY = 'vacai_trips'
 
 export const localStorageUtils = {
   // Get all trips
